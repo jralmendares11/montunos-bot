@@ -60,9 +60,10 @@ client.once("ready", async () => {
 
   try {
     console.log("Registrando comandos en Discord...");
-    await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
-      body: commands
-    });
+    await rest.put(
+      Routes.applicationGuildCommands(client.user.id, GUILD_ID),
+      { body: commands }
+    );
     console.log("Comandos registrados exitosamente ✔️");
   } catch (error) {
     console.error("Error registrando comandos:", error);
@@ -80,22 +81,34 @@ client.on("interactionCreate", async interaction => {
   if (!member)
     return interaction.reply("❌ No encontré ese usuario en el servidor.");
 
+  // ============================
+  //        WL APROBADA
+  // ============================
   if (interaction.commandName === "wlpass") {
     await member.roles.add(ROLE_WHITELIST);
 
     const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
+    if (log)
+      log.send(`🟢 *Whitelist aprobada* → <@${userId}>`);
 
-    return interaction.reply(`:wlpass: ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> ** ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`);
+    return interaction.reply(
+      `:wlpass:  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
+    );
   }
 
+  // ============================
+  //        WL DENEGADA
+  // ============================
   if (interaction.commandName === "wldenied") {
     await member.roles.add(ROLE_DENIED);
 
     const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log) log.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
+    if (log)
+      log.send(`🔴 *Whitelist denegada* → <@${userId}>`);
 
-    return interaction.reply(`:wldenied: ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`);
+    return interaction.reply(
+      `:wldenied:  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`
+    );
   }
 });
 
