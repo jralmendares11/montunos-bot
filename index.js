@@ -86,7 +86,7 @@ client.on("interactionCreate", async interaction => {
     const log = guild.channels.cache.get(LOG_CHANNEL);
     if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
 
-    return interaction.reply(`🟢 Whitelist aprobada para <@${userId}>`);
+    return interaction.reply(`:wlpass: ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> ** ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`);
   }
 
   if (interaction.commandName === "wldenied") {
@@ -95,7 +95,7 @@ client.on("interactionCreate", async interaction => {
     const log = guild.channels.cache.get(LOG_CHANNEL);
     if (log) log.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
 
-    return interaction.reply(`🔴 Whitelist denegada para <@${userId}>`);
+    return interaction.reply(`:wldenied: ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`);
   }
 });
 
