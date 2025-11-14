@@ -8,7 +8,7 @@ const {
   SlashCommandBuilder
 } = require("discord.js");
 
-// Servidor para keep-alive en Render
+// Servidor Keep Alive (Render)
 const PORT = process.env.PORT || 3000;
 http
   .createServer((req, res) => {
@@ -45,6 +45,7 @@ client.once("ready", async () => {
           .setDescription("ID del usuario a aprobar")
           .setRequired(true)
       ),
+
     new SlashCommandBuilder()
       .setName("wldenied")
       .setDescription("Denegar whitelist")
@@ -60,10 +61,9 @@ client.once("ready", async () => {
 
   try {
     console.log("Registrando comandos en Discord...");
-    await rest.put(
-      Routes.applicationGuildCommands(client.user.id, GUILD_ID),
-      { body: commands }
-    );
+    await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
+      body: commands
+    });
     console.log("Comandos registrados exitosamente ✔️");
   } catch (error) {
     console.error("Error registrando comandos:", error);
@@ -81,33 +81,27 @@ client.on("interactionCreate", async interaction => {
   if (!member)
     return interaction.reply("❌ No encontré ese usuario en el servidor.");
 
-  // ============================
-  //        WL APROBADA
-  // ============================
+  // ===== WL APROBADA =====
   if (interaction.commandName === "wlpass") {
     await member.roles.add(ROLE_WHITELIST);
 
     const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log)
-      log.send(`🟢 *Whitelist aprobada* → <@${userId}>`);
+    if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
 
     return interaction.reply(
-      `:wlpass:  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
+      `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
     );
   }
 
-  // ============================
-  //        WL DENEGADA
-  // ============================
+  // ===== WL DENEGADA =====
   if (interaction.commandName === "wldenied") {
     await member.roles.add(ROLE_DENIED);
 
     const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log)
-      log.send(`🔴 *Whitelist denegada* → <@${userId}>`);
+    if (log) log.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
 
     return interaction.reply(
-      `:wldenied:  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`
+      `<a:wldenied:1438762143561289728>  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`
     );
   }
 });
