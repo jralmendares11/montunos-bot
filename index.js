@@ -70,7 +70,6 @@ client.once("ready", async () => {
   }
 });
 
-// === LÓGICA DE LOS COMANDOS ===
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -80,6 +79,51 @@ client.on("interactionCreate", async interaction => {
   const member = await guild.members.fetch(userId).catch(() => null);
   if (!member)
     return interaction.reply("❌ No encontré ese usuario en el servidor.");
+
+  // ===== WL APROBADA =====
+  if (interaction.commandName === "wlpass") {
+    try {
+      await member.roles.add(ROLE_WHITELIST);
+
+      const log = guild.channels.cache.get(LOG_CHANNEL);
+      if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
+
+      return interaction.reply(
+        `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
+      );
+    } catch (err) {
+      console.error("Error en /wlpass:", err);
+      return interaction.reply({
+        content:
+          "❌ No pude asignar el rol de whitelist. Revisa permisos y orden de roles del bot.",
+        ephemeral: true
+      });
+    }
+  }
+
+  // ===== WL DENEGADA =====
+  if (interaction.commandName === "wldenied") {
+    try {
+      await member.roles.add(ROLE_DENIED);
+
+      const log = guild.channels.cache.get(LOG_CHANNEL);
+      if (log) log.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
+
+      return interaction.reply(
+        `<a:wldenied:1438762143561289728>  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`
+      );
+    } catch (err) {
+      console.error("Error en /wldenied:", err);
+      return interaction.reply({
+        content:
+          "❌ No pude asignar el rol de whitelist denegada. Revisa permisos y orden de roles del bot.",
+        ephemeral: true
+      });
+    }
+  }
+});
+
+
 
   // ===== WL APROBADA =====
   if (interaction.commandName === "wlpass") {
