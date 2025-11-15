@@ -40,36 +40,31 @@ client.once("ready", async () => {
       .setName("wlpass")
       .setDescription("Aprobar whitelist")
       .addStringOption(option =>
-        option
-          .setName("id")
-          .setDescription("ID del usuario a aprobar")
-          .setRequired(true)
+        option.setName("id").setDescription("ID del usuario").setRequired(true)
       ),
 
     new SlashCommandBuilder()
       .setName("wldenied")
       .setDescription("Denegar whitelist")
       .addStringOption(option =>
-        option
-          .setName("id")
-          .setDescription("ID del usuario a denegar")
-          .setRequired(true)
+        option.setName("id").setDescription("ID del usuario").setRequired(true)
       )
   ].map(cmd => cmd.toJSON());
 
   const rest = new REST({ version: "10" }).setToken(TOKEN);
 
   try {
-    console.log("Registrando comandos en Discord...");
+    console.log("Registrando comandos...");
     await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
       body: commands
     });
-    console.log("Comandos registrados exitosamente ✔️");
+    console.log("✔️ Comandos registrados");
   } catch (error) {
     console.error("Error registrando comandos:", error);
   }
 });
 
+// === LÓGICA DE COMANDOS ===
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -95,7 +90,7 @@ client.on("interactionCreate", async interaction => {
       console.error("Error en /wlpass:", err);
       return interaction.reply({
         content:
-          "❌ No pude asignar el rol de whitelist. Revisa permisos y orden de roles del bot.",
+          "❌ No pude asignar el rol WL. Revisá los permisos y que el bot esté arriba del rol.",
         ephemeral: true
       });
     }
@@ -116,37 +111,10 @@ client.on("interactionCreate", async interaction => {
       console.error("Error en /wldenied:", err);
       return interaction.reply({
         content:
-          "❌ No pude asignar el rol de whitelist denegada. Revisa permisos y orden de roles del bot.",
+          "❌ No pude asignar el rol WL Denegada. Revisá los permisos y jerarquía del bot.",
         ephemeral: true
       });
     }
-  }
-});
-
-
-
-  // ===== WL APROBADA =====
-  if (interaction.commandName === "wlpass") {
-    await member.roles.add(ROLE_WHITELIST);
-
-    const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
-
-    return interaction.reply(
-      `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
-    );
-  }
-
-  // ===== WL DENEGADA =====
-  if (interaction.commandName === "wldenied") {
-    await member.roles.add(ROLE_DENIED);
-
-    const log = guild.channels.cache.get(LOG_CHANNEL);
-    if (log) log.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
-
-    return interaction.reply(
-      `<a:wldenied:1438762143561289728>  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.**`
-    );
   }
 });
 
