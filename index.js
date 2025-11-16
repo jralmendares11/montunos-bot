@@ -84,7 +84,7 @@ client.on("interactionCreate", async interaction => {
       if (log) log.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
 
       return interaction.reply(
-        `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, ᴄʜᴇʟᴇ. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
+        `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
       );
     } catch (err) {
       console.error("Error en /wlpass:", err);
