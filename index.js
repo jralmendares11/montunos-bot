@@ -99,7 +99,7 @@ client.on("interactionCreate", async interaction => {
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
         if (publicChannel) {
           await publicChannel.send({
-            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴇsᴏᴏᴏᴏᴏ, Bienvenido Montuno. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
+            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
             files: ["./assets/wlpass.gif"]
           });
         }
