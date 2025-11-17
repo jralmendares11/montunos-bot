@@ -40,7 +40,8 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = process.env.GUILD_ID;
 const ROLE_WHITELIST = process.env.ROLE_WHITELIST_ID;
 const ROLE_DENIED = process.env.ROLE_DENIED_ID;
-const LOG_CHANNEL = process.env.LOG_CHANNEL_ID;
+const LOG_CHANNEL = process.env.LOG_CHANNEL_ID;        // canal STAFF (usar comando + logs)
+const RESULT_CHANNEL = process.env.RESULT_CHANNEL_ID;  // canal PÚBLICO (mensaje bonito)
 
 // ========== REGISTRO DE SLASH COMMANDS ==========
 client.once("ready", async () => {
@@ -110,9 +111,17 @@ client.on("interactionCreate", async (interaction) => {
     // ===== WL APROBADA =====
     if (interaction.commandName === "wlpass") {
       try {
+        // Solo permitir el comando en el canal de staff
+        if (LOG_CHANNEL && interaction.channelId !== LOG_CHANNEL) {
+          return interaction.reply({
+            content: "❌ Este comando solo se puede usar en el canal de staff.",
+            ephemeral: true
+          });
+        }
+
         await member.roles.add(ROLE_WHITELIST);
 
-        // LOG PARA STAFF (canal LOG_CHANNEL_ID)
+        // LOG PARA STAFF (mensaje simple)
         if (LOG_CHANNEL) {
           try {
             const logChannel = await guild.channels.fetch(LOG_CHANNEL);
@@ -121,19 +130,36 @@ client.on("interactionCreate", async (interaction) => {
               (logChannel.type === ChannelType.GuildText ||
                 logChannel.isTextBased?.())
             ) {
-              await logChannel.send(
-                `🟢 WHITELIST APROBADA → <@${userId}>`
-              );
+              await logChannel.send(`🟢 WHITELIST APROBADA → <@${userId}>`);
             }
           } catch (err) {
             console.error("Error enviando log de WL aprobada:", err);
           }
         }
 
-        // MENSAJE BONITO EN EL CANAL DONDE USARON EL COMANDO
-        return interaction.reply(
-          `<a:wlpass:1438759548872818738>  ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`
-        );
+        // MENSAJE BONITO EN CANAL PÚBLICO (RESULT_CHANNEL)
+        if (RESULT_CHANNEL) {
+          try {
+            const publicChannel = await guild.channels.fetch(RESULT_CHANNEL);
+            if (
+              publicChannel &&
+              (publicChannel.type === ChannelType.GuildText ||
+                publicChannel.isTextBased?.())
+            ) {
+              await publicChannel.send(
+                `ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.** <a:wlpass:1438759548872818738>`
+              );
+            }
+          } catch (err) {
+            console.error("Error enviando mensaje público WL aprobada:", err);
+          }
+        }
+
+        // RESPUESTA SOLO PARA QUIEN USÓ EL COMANDO
+        return interaction.reply({
+          content: `✔️ Aprobaste a <@${userId}> y se anunció en resultados.`,
+          ephemeral: true
+        });
       } catch (err) {
         console.error("Error en /wlpass:", err);
         return interaction.reply({
@@ -147,9 +173,17 @@ client.on("interactionCreate", async (interaction) => {
     // ===== WL DENEGADA =====
     if (interaction.commandName === "wldenied") {
       try {
+        // Solo permitir el comando en el canal de staff
+        if (LOG_CHANNEL && interaction.channelId !== LOG_CHANNEL) {
+          return interaction.reply({
+            content: "❌ Este comando solo se puede usar en el canal de staff.",
+            ephemeral: true
+          });
+        }
+
         await member.roles.add(ROLE_DENIED);
 
-        // LOG PARA STAFF
+        // LOG PARA STAFF (mensaje simple)
         if (LOG_CHANNEL) {
           try {
             const logChannel = await guild.channels.fetch(LOG_CHANNEL);
@@ -158,18 +192,36 @@ client.on("interactionCreate", async (interaction) => {
               (logChannel.type === ChannelType.GuildText ||
                 logChannel.isTextBased?.())
             ) {
-              await logChannel.send(
-                `🔴 WHITELIST DENEGADA → <@${userId}>`
-              );
+              await logChannel.send(`🔴 WHITELIST DENEGADA → <@${userId}>`);
             }
           } catch (err) {
             console.error("Error enviando log de WL denegada:", err);
           }
         }
 
-        return interaction.reply(
-          `  ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs. <a:wldenied:1438762143561289728> **`
-        );
+        // MENSAJE BONITO EN CANAL PÚBLICO
+        if (RESULT_CHANNEL) {
+          try {
+            const publicChannel = await guild.channels.fetch(RESULT_CHANNEL);
+            if (
+              publicChannel &&
+              (publicChannel.type === ChannelType.GuildText ||
+                publicChannel.isTextBased?.())
+            ) {
+              await publicChannel.send(
+                `ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ᴀʟɢᴏ ғᴀʟʟᴏ́ ᴀʜɪ́. ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ǫᴜᴇ ᴠᴜᴇʟᴠᴀ ᴀ ʜᴀᴄᴇʀ ᴇʟ ɪɴᴛᴇɴᴛᴏ ᴀ ᴄɪᴇɢᴀs.** <a:wldenied:1438762143561289728>`
+              );
+            }
+          } catch (err) {
+            console.error("Error enviando mensaje público WL denegada:", err);
+          }
+        }
+
+        // RESPUESTA SOLO PARA STAFF
+        return interaction.reply({
+          content: `❌ Denegaste a <@${userId}> y se anunció en resultados.`,
+          ephemeral: true
+        });
       } catch (err) {
         console.error("Error en /wldenied:", err);
         return interaction.reply({
