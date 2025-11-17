@@ -100,7 +100,7 @@ client.on("interactionCreate", async interaction => {
         if (publicChannel) {
           await publicChannel.send({
             content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴇsᴏᴏᴏᴏᴏ, Bienvenido Montuno. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
-            files: ["./assets/wlpass.gif"]
+            files: ["./assets/wlpass .gif"]
           });
         }
 
