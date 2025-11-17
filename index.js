@@ -104,10 +104,6 @@ client.on("interactionCreate", async interaction => {
           });
         }
 
-        return interaction.reply({
-          content: `✔️ Listo mahe.`,
-          ephemeral: true
-        });
       } catch (err) {
         console.error(err);
         return interaction.reply({
