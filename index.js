@@ -91,9 +91,9 @@ if (interaction.commandName === "wlpass") {
   try {
     await member.roles.add(ROLE_WHITELIST);
 
-    // LOG PARA STAFF
-    const log = await guild.channels.fetch(LOG_CHANNEL);
-    if (log) log.send(`🟢 WL APROBADA → <@${userId}>`);
+   // LOG STAFF
+const log = await guild.channels.fetch(LOG_CHANNEL);
+if (log) log.send(`🟢 <@${interaction.user.id}> aprobó una WL → <@${userId}>`);
 
     // MENSAJE BONITO CON GIF
     const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
@@ -134,9 +134,9 @@ if (interaction.commandName === "wlpass") {
       try {
         await member.roles.add(ROLE_DENIED);
 
-        // LOG STAFF
-        const log = await guild.channels.fetch(LOG_CHANNEL);
-        if (log) log.send(`🔴 WL DENEGADA → <@${userId}>`);
+// LOG STAFF
+const log = await guild.channels.fetch(LOG_CHANNEL);
+if (log) log.send(`🔴 <@${interaction.user.id}> denegó una WL → <@${userId}>`);
 
         // MENSAJE CON GIF
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
