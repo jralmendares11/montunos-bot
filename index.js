@@ -106,7 +106,7 @@ if (interaction.commandName === "wlpass") {
 
     // ✅ Respuesta al staff para evitar "La aplicación no ha respondido"
     return interaction.reply({
-      content: "✔️ WL aprobada mahe.",
+      content: "✔️ WL aprobada.",
       ephemeral: true
     });
 
