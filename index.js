@@ -86,32 +86,48 @@ client.on("interactionCreate", async interaction => {
         ephemeral: true
       });
 
-    // ==== WL APROBADA ====
-    if (interaction.commandName === "wlpass") {
-      try {
-        await member.roles.add(ROLE_WHITELIST);
+// ==== WL APROBADA ====
+if (interaction.commandName === "wlpass") {
+  try {
+    await member.roles.add(ROLE_WHITELIST);
 
-        // LOG PARA STAFF
-        const log = await guild.channels.fetch(LOG_CHANNEL);
-        if (log) log.send(`🟢 WL APROBADA → <@${userId}>`);
+    // LOG PARA STAFF
+    const log = await guild.channels.fetch(LOG_CHANNEL);
+    if (log) log.send(`🟢 WL APROBADA → <@${userId}>`);
 
-        // MENSAJE BONITO CON GIF
-        const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
-        if (publicChannel) {
-          await publicChannel.send({
-            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
-            files: ["./assets/wlpass.gif"]
-          });
-        }
-
-      } catch (err) {
-        console.error(err);
-        return interaction.reply({
-          content: "❌ No pude asignar WL.",
-          ephemeral: true
-        });
-      }
+    // MENSAJE BONITO CON GIF
+    const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
+    if (publicChannel) {
+      await publicChannel.send({
+        content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
+        files: ["./assets/wlpass.gif"]
+      });
     }
+
+    // ✅ Respuesta al staff para evitar "La aplicación no ha respondido"
+    return interaction.reply({
+      content: "✔️ WL aprobada mahe.",
+      ephemeral: true
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    // Si ya se respondió antes, usar followUp
+    if (interaction.replied || interaction.deferred) {
+      return interaction.followUp({
+        content: "❌ No pude asignar WL.",
+        ephemeral: true
+      });
+    }
+
+    return interaction.reply({
+      content: "❌ No pude asignar WL.",
+      ephemeral: true
+    });
+  }
+}
+
 
     // ==== WL DENEGADA ====
     if (interaction.commandName === "wldenied") {
