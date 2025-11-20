@@ -1,4 +1,78 @@
-// ========== LÓGICA DE COMANDOS ==========
+// ================== CONFIG & IMPORTS ==================
+require("dotenv").config();
+const http = require("http");
+const {
+  Client,
+  GatewayIntentBits,
+  REST,
+  Routes,
+  SlashCommandBuilder
+} = require("discord.js");
+
+// ================== KEEP ALIVE SERVER ==================
+const PORT = process.env.PORT || 3000;
+
+http
+  .createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("ok");
+  })
+  .listen(PORT, () => {
+    console.log(`Servidor HTTP keep-alive activo en puerto ${PORT}`);
+  });
+
+// ================== BOT CLIENT ==================
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
+});
+
+// ENV
+const TOKEN = process.env.DISCORD_TOKEN;
+const GUILD_ID = process.env.GUILD_ID;
+
+// ROLES
+const ROLE_WHITELIST = process.env.ROLE_WHITELIST_ID;
+const ROLE_DENIED = process.env.ROLE_DENIED_ID;
+
+// CANALES
+const PUBLIC_CHANNEL = "1437181608485589012"; // Mensaje bonito + GIF
+const LOG_CHANNEL = "1064398910891765883";   // Mensaje simple staff
+
+// ================== REGISTRO DE SLASH COMMANDS ==================
+client.once("ready", async () => {
+  console.log(`Bot iniciado como ${client.user.tag}`);
+
+  const commands = [
+    new SlashCommandBuilder()
+      .setName("wlpass")
+      .setDescription("Aprobar whitelist")
+      .addStringOption(option =>
+        option.setName("id").setDescription("ID del usuario").setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
+      .setName("wldenied")
+      .setDescription("Denegar whitelist")
+      .addStringOption(option =>
+        option.setName("id").setDescription("ID del usuario").setRequired(true)
+      )
+  ].map(cmd => cmd.toJSON());
+
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
+
+  try {
+    console.log("Registrando comandos...");
+    await rest.put(
+      Routes.applicationGuildCommands(client.user.id, GUILD_ID),
+      { body: commands }
+    );
+    console.log("✔️ Comandos registrados");
+  } catch (error) {
+    console.error("Error registrando comandos:", error);
+  }
+});
+
+// ================== LÓGICA DE COMANDOS ==================
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -6,10 +80,9 @@ client.on("interactionCreate", async (interaction) => {
     const guild = interaction.guild || client.guilds.cache.get(GUILD_ID);
     const userId = interaction.options.getString("id");
 
-    // 1) Defer temprano: evita "Unknown interaction" por tarda más de 3s
+    // 1) Defer temprano para evitar "Unknown interaction"
     await interaction.deferReply({ ephemeral: true });
 
-    // 2) Buscar al miembro
     const member = await guild.members.fetch(userId).catch(() => null);
 
     if (!member) {
@@ -19,7 +92,7 @@ client.on("interactionCreate", async (interaction) => {
       return;
     }
 
-    // ==== WL APROBADA ====
+    // ========= WL APROBADA =========
     if (interaction.commandName === "wlpass") {
       try {
         await member.roles.add(ROLE_WHITELIST);
@@ -31,7 +104,7 @@ client.on("interactionCreate", async (interaction) => {
             .catch(console.error);
         }
 
-        // CANAL PÚBLICO + GIF
+        // RESULTADO + GIF (NO LO TOCO)
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
         if (publicChannel) {
           publicChannel.send({
@@ -40,7 +113,6 @@ client.on("interactionCreate", async (interaction) => {
           }).catch(console.error);
         }
 
-        // Responder al staff (edit porque ya hicimos deferReply)
         await interaction.editReply({
           content: "✔️ WL aprobada."
         });
@@ -53,7 +125,7 @@ client.on("interactionCreate", async (interaction) => {
       }
     }
 
-    // ==== WL DENEGADA ====
+    // ========= WL DENEGADA =========
     else if (interaction.commandName === "wldenied") {
       try {
         await member.roles.add(ROLE_DENIED);
@@ -65,7 +137,7 @@ client.on("interactionCreate", async (interaction) => {
             .catch(console.error);
         }
 
-        // CANAL PÚBLICO + GIF
+        // RESULTADO + GIF (NO LO TOCO)
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
         if (publicChannel) {
           publicChannel.send({
@@ -87,10 +159,8 @@ client.on("interactionCreate", async (interaction) => {
     }
 
   } catch (err) {
-    // Cualquier cosa que se escape llega aquí
     console.error("Error general en interactionCreate:", err);
 
-    // Intentar avisar al staff sin volver a romper nada
     if (!interaction.replied && !interaction.deferred) {
       interaction.reply({
         content: "❌ Ocurrió un error al procesar el comando.",
@@ -103,3 +173,6 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 });
+
+// ================== LOGIN ==================
+client.login(TOKEN);
