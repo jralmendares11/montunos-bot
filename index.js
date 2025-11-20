@@ -1,167 +1,105 @@
-require("dotenv").config();
-const http = require("http");
-const {
-  Client,
-  GatewayIntentBits,
-  REST,
-  Routes,
-  SlashCommandBuilder,
-  ChannelType
-} = require("discord.js");
-
-// ========== KEEP ALIVE SERVER ==========
-const PORT = process.env.PORT || 3000;
-
-http
-  .createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("ok");
-  })
-  .listen(PORT, () => {
-    console.log(`Servidor HTTP keep-alive activo en puerto ${PORT}`);
-  });
-
-// ========== BOT ==========
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
-});
-
-// ENV
-const TOKEN = process.env.DISCORD_TOKEN;
-const GUILD_ID = process.env.GUILD_ID;
-
-// ROLES
-const ROLE_WHITELIST = process.env.ROLE_WHITELIST_ID;
-const ROLE_DENIED = process.env.ROLE_DENIED_ID;
-
-// CANALES
-const PUBLIC_CHANNEL = "1437181608485589012"; // Aquí va el mensaje bonito + GIF
-const LOG_CHANNEL = "1064398910891765883";   // Aquí va el mensaje simple del staff
-
-// ========== REGISTRO DE SLASH COMMANDS ==========
-client.once("ready", async () => {
-  console.log(`Bot iniciado como ${client.user.tag}`);
-
-  const commands = [
-    new SlashCommandBuilder()
-      .setName("wlpass")
-      .setDescription("Aprobar whitelist")
-      .addStringOption(option =>
-        option.setName("id").setDescription("ID del usuario").setRequired(true)
-      ),
-
-    new SlashCommandBuilder()
-      .setName("wldenied")
-      .setDescription("Denegar whitelist")
-      .addStringOption(option =>
-        option.setName("id").setDescription("ID del usuario").setRequired(true)
-      )
-  ].map(cmd => cmd.toJSON());
-
-  const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-  try {
-    console.log("Registrando comandos...");
-    await rest.put(Routes.applicationGuildCommands(client.user.id, GUILD_ID), {
-      body: commands
-    });
-    console.log("✔️ Comandos registrados");
-  } catch (error) {
-    console.error("Error registrando comandos:", error);
-  }
-});
-
 // ========== LÓGICA DE COMANDOS ==========
-client.on("interactionCreate", async interaction => {
+client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   try {
     const guild = interaction.guild || client.guilds.cache.get(GUILD_ID);
     const userId = interaction.options.getString("id");
+
+    // 1) Defer temprano: evita "Unknown interaction" por tarda más de 3s
+    await interaction.deferReply({ ephemeral: true });
+
+    // 2) Buscar al miembro
     const member = await guild.members.fetch(userId).catch(() => null);
 
-    if (!member)
-      return interaction.reply({
-        content: "❌ No encontré ese usuario en el servidor.",
-        ephemeral: true
+    if (!member) {
+      await interaction.editReply({
+        content: "❌ No encontré ese usuario en el servidor."
       });
-
-// ==== WL APROBADA ====
-if (interaction.commandName === "wlpass") {
-  try {
-    await member.roles.add(ROLE_WHITELIST);
-
-   // LOG STAFF
-const log = await guild.channels.fetch(LOG_CHANNEL);
-if (log) log.send(`🟢 <@${interaction.user.id}> aprobó una WL → <@${userId}>`);
-
-    // MENSAJE BONITO CON GIF
-    const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
-    if (publicChannel) {
-      await publicChannel.send({
-        content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
-        files: ["./assets/wlpass.gif"]
-      });
+      return;
     }
 
-    // ✅ Respuesta al staff para evitar "La aplicación no ha respondido"
-    return interaction.reply({
-      content: "✔️ WL aprobada.",
-      ephemeral: true
-    });
+    // ==== WL APROBADA ====
+    if (interaction.commandName === "wlpass") {
+      try {
+        await member.roles.add(ROLE_WHITELIST);
 
-  } catch (err) {
-    console.error(err);
+        // LOG STAFF
+        const log = await guild.channels.fetch(LOG_CHANNEL).catch(() => null);
+        if (log) {
+          log.send(`🟢 <@${interaction.user.id}> aprobó una WL → <@${userId}>`)
+            .catch(console.error);
+        }
 
-    // Si ya se respondió antes, usar followUp
-    if (interaction.replied || interaction.deferred) {
-      return interaction.followUp({
-        content: "❌ No pude asignar WL.",
-        ephemeral: true
-      });
+        // CANAL PÚBLICO + GIF
+        const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
+        if (publicChannel) {
+          publicChannel.send({
+            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
+            files: ["./assets/wlpass.gif"]
+          }).catch(console.error);
+        }
+
+        // Responder al staff (edit porque ya hicimos deferReply)
+        await interaction.editReply({
+          content: "✔️ WL aprobada."
+        });
+
+      } catch (err) {
+        console.error("Error en /wlpass:", err);
+        await interaction.editReply({
+          content: "❌ No pude asignar WL."
+        }).catch(console.error);
+      }
     }
-
-    return interaction.reply({
-      content: "❌ No pude asignar WL.",
-      ephemeral: true
-    });
-  }
-}
-
 
     // ==== WL DENEGADA ====
-    if (interaction.commandName === "wldenied") {
+    else if (interaction.commandName === "wldenied") {
       try {
         await member.roles.add(ROLE_DENIED);
 
-// LOG STAFF
-const log = await guild.channels.fetch(LOG_CHANNEL);
-if (log) log.send(`🔴 <@${interaction.user.id}> denegó una WL → <@${userId}>`);
-
-        // MENSAJE CON GIF
-        const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL);
-        if (publicChannel) {
-          await publicChannel.send({
-            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ᴠᴏʟᴠᴇʀ.**`,
-            files: ["./assets/wldenied.gif"]
-          });
+        // LOG STAFF
+        const log = await guild.channels.fetch(LOG_CHANNEL).catch(() => null);
+        if (log) {
+          log.send(`🔴 <@${interaction.user.id}> denegó una WL → <@${userId}>`)
+            .catch(console.error);
         }
 
-        return interaction.reply({
-          content: `❌ Denegado.`,
-          ephemeral: true
+        // CANAL PÚBLICO + GIF
+        const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
+        if (publicChannel) {
+          publicChannel.send({
+            content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ᴠᴏʟᴠᴇʀ.**`,
+            files: ["./assets/wldenied.gif"]
+          }).catch(console.error);
+        }
+
+        await interaction.editReply({
+          content: "❌ Denegado."
         });
+
       } catch (err) {
-        console.error(err);
-        return interaction.reply({
-          content: "❌ No pude asignar WL Denegada.",
-          ephemeral: true
-        });
+        console.error("Error en /wldenied:", err);
+        await interaction.editReply({
+          content: "❌ No pude asignar WL Denegada."
+        }).catch(console.error);
       }
     }
-  } catch (error) {
-    console.error(error);
+
+  } catch (err) {
+    // Cualquier cosa que se escape llega aquí
+    console.error("Error general en interactionCreate:", err);
+
+    // Intentar avisar al staff sin volver a romper nada
+    if (!interaction.replied && !interaction.deferred) {
+      interaction.reply({
+        content: "❌ Ocurrió un error al procesar el comando.",
+        ephemeral: true
+      }).catch(() => {});
+    } else if (interaction.deferred) {
+      interaction.editReply({
+        content: "❌ Ocurrió un error al procesar el comando."
+      }).catch(() => {});
+    }
   }
 });
-
-client.login(TOKEN);
