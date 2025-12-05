@@ -40,6 +40,7 @@ const LOG_CHANNEL    = "1064398910891765883"; // Mensaje simple staff
 
 // ================== READY (UN SOLO READY) ==================
 client.once("ready", async () => {
+  console.log("=========== EVENTO READY ===========");
   console.log(`Bot iniciado como ${client.user.tag}`);
   console.log("DEBUG GUILD_ID:", GUILD_ID);
   console.log("DEBUG PUBLIC_CHANNEL:", PUBLIC_CHANNEL);
@@ -64,24 +65,31 @@ client.once("ready", async () => {
   const rest = new REST({ version: "10" }).setToken(TOKEN);
 
   try {
-    console.log("Registrando comandos...");
+    console.log("Intentando registrar comandos en GUILD:", GUILD_ID);
     await rest.put(
       Routes.applicationGuildCommands(client.user.id, GUILD_ID),
       { body: commands }
     );
-    console.log("✔️ Comandos registrados");
+    console.log("✔️ Comandos registrados correctamente");
   } catch (error) {
-    console.error("Error registrando comandos:", error);
+    console.error("❌ Error registrando comandos:", error);
   }
+
+  console.log("=========== READY COMPLETADO ===========");
 });
 
 // ================== LÓGICA DE COMANDOS ==================
 client.on("interactionCreate", async (interaction) => {
+  // Log rápido para ver si esto se ejecuta
+  console.log("Evento interactionCreate recibido:", interaction.commandName);
+
   if (!interaction.isChatInputCommand()) return;
 
   try {
     const guild = interaction.guild || client.guilds.cache.get(GUILD_ID);
     const userId = interaction.options.getString("id");
+
+    console.log("Comando recibido:", interaction.commandName, "para userId:", userId);
 
     // Defer temprano
     await interaction.deferReply({ ephemeral: true });
@@ -89,6 +97,7 @@ client.on("interactionCreate", async (interaction) => {
     const member = await guild.members.fetch(userId).catch(() => null);
 
     if (!member) {
+      console.log("No encontré al miembro con ID:", userId);
       await interaction.editReply({
         content: "❌ No encontré ese usuario en el servidor."
       });
@@ -98,6 +107,7 @@ client.on("interactionCreate", async (interaction) => {
     // ========= WL APROBADA =========
     if (interaction.commandName === "wlpass") {
       try {
+        console.log("Ejecutando /wlpass para:", userId);
         await member.roles.add(ROLE_WHITELIST);
 
         // LOG STAFF
@@ -105,6 +115,8 @@ client.on("interactionCreate", async (interaction) => {
         if (log) {
           log.send(`🟢 <@${interaction.user.id}> aprobó una WL → <@${userId}>`)
             .catch(console.error);
+        } else {
+          console.error("No pude encontrar LOG_CHANNEL");
         }
 
         // CANAL PÚBLICO
@@ -133,6 +145,7 @@ client.on("interactionCreate", async (interaction) => {
     // ========= WL DENEGADA =========
     else if (interaction.commandName === "wldenied") {
       try {
+        console.log("Ejecutando /wldenied para:", userId);
         await member.roles.add(ROLE_DENIED);
 
         // LOG STAFF
@@ -140,6 +153,8 @@ client.on("interactionCreate", async (interaction) => {
         if (log) {
           log.send(`🔴 <@${interaction.user.id}> denegó una WL → <@${userId}>`)
             .catch(console.error);
+        } else {
+          console.error("No pude encontrar LOG_CHANNEL");
         }
 
         // CANAL PÚBLICO
