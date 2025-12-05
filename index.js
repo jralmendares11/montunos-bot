@@ -22,26 +22,30 @@ http
   });
 
 // ================== BOT CLIENT ==================
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
-});
-
-// ENV
-const TOKEN = process.env.DISCORD_TOKEN;
-const GUILD_ID = process.env.GUILD_ID;
-
-// ROLES
-const ROLE_WHITELIST = process.env.ROLE_WHITELIST_ID;
-const ROLE_DENIED = process.env.ROLE_DENIED_ID;
-
-// CANALES
-const PUBLIC_CHANNEL = "1437181608485589012"; // Mensaje bonito + GIF
-const LOG_CHANNEL = "1064398910891765883";   // Mensaje simple staff
-
-// ================== REGISTRO DE SLASH COMMANDS ==================
 client.once("ready", async () => {
   console.log(`Bot iniciado como ${client.user.tag}`);
 
+  // ===== DEBUG DEL CANAL =====
+  try {
+    const ch = await client.channels.fetch(PUBLIC_CHANNEL);
+    if (!ch) {
+      console.log("DEBUG PUBLIC_CHANNEL: no encontré el canal");
+    } else {
+      console.log(
+        "DEBUG PUBLIC_CHANNEL:",
+        "id =", ch.id,
+        "| nombre =", ch.name,
+        "| guild =", ch.guild?.id
+      );
+
+      const perms = ch.permissionsFor(client.user.id);
+      console.log("DEBUG PERMISOS BOT EN CANAL:", perms?.toArray());
+    }
+  } catch (e) {
+    console.error("DEBUG ERROR AL OBTENER PUBLIC_CHANNEL:", e);
+  }
+
+  // ===== REGISTRO DE COMMANDOS =====
   const commands = [
     new SlashCommandBuilder()
       .setName("wlpass")
