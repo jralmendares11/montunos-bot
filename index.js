@@ -179,4 +179,13 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 // ================== LOGIN ==================
-client.login(TOKEN);
+console.log("Iniciando login… TOKEN presente?", !!TOKEN);
+
+client.login(TOKEN)
+  .then(() => {
+    console.log("✅ Login correcto, esperando evento 'ready'...");
+  })
+  .catch(err => {
+    console.error("❌ Error en client.login:", err);
+  });
+
