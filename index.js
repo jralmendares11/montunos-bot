@@ -22,30 +22,31 @@ http
   });
 
 // ================== BOT CLIENT ==================
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
+});
+
+// ENV
+const TOKEN = process.env.DISCORD_TOKEN;
+const GUILD_ID = process.env.GUILD_ID;
+
+// ROLES
+const ROLE_WHITELIST = process.env.ROLE_WHITELIST_ID;
+const ROLE_DENIED = process.env.ROLE_DENIED_ID;
+
+// CANALES
+const PUBLIC_CHANNEL = "1437181608485589012"; // Mensaje bonito + GIF
+const LOG_CHANNEL    = "1064398910891765883"; // Mensaje simple staff
+
+// ================== READY ==================
 client.once("ready", async () => {
   console.log(`Bot iniciado como ${client.user.tag}`);
+  console.log("DEBUG GUILD_ID:", GUILD_ID);
+  console.log("DEBUG PUBLIC_CHANNEL:", PUBLIC_CHANNEL);
+});
 
-  // ===== DEBUG DEL CANAL =====
-  try {
-    const ch = await client.channels.fetch(PUBLIC_CHANNEL);
-    if (!ch) {
-      console.log("DEBUG PUBLIC_CHANNEL: no encontré el canal");
-    } else {
-      console.log(
-        "DEBUG PUBLIC_CHANNEL:",
-        "id =", ch.id,
-        "| nombre =", ch.name,
-        "| guild =", ch.guild?.id
-      );
-
-      const perms = ch.permissionsFor(client.user.id);
-      console.log("DEBUG PERMISOS BOT EN CANAL:", perms?.toArray());
-    }
-  } catch (e) {
-    console.error("DEBUG ERROR AL OBTENER PUBLIC_CHANNEL:", e);
-  }
-
-  // ===== REGISTRO DE COMMANDOS =====
+// ================== REGISTRO DE SLASH COMMANDS ==================
+client.once("ready", async () => {
   const commands = [
     new SlashCommandBuilder()
       .setName("wlpass")
@@ -84,7 +85,7 @@ client.on("interactionCreate", async (interaction) => {
     const guild = interaction.guild || client.guilds.cache.get(GUILD_ID);
     const userId = interaction.options.getString("id");
 
-    // 1) Defer temprano para evitar "Unknown interaction"
+    // Defer temprano
     await interaction.deferReply({ ephemeral: true });
 
     const member = await guild.members.fetch(userId).catch(() => null);
@@ -108,13 +109,15 @@ client.on("interactionCreate", async (interaction) => {
             .catch(console.error);
         }
 
-        // RESULTADO + GIF (NO LO TOCO)
+        // CANAL PÚBLICO
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
         if (publicChannel) {
           publicChannel.send({
             content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴀᴘʀᴏʙᴀᴅᴀ <@${userId}> — **ᴀsɪ́ sɪ́, Bienvenido Montuno. ғᴏʀᴍᴜʟᴀʀɪᴏ ʟɪᴍᴘɪᴏ. ᴀᴅᴇʟᴀɴᴛᴇ.**`,
             files: ["./assets/wlpass.gif"]
           }).catch(console.error);
+        } else {
+          console.error("No pude encontrar PUBLIC_CHANNEL");
         }
 
         await interaction.editReply({
@@ -141,13 +144,15 @@ client.on("interactionCreate", async (interaction) => {
             .catch(console.error);
         }
 
-        // RESULTADO + GIF (NO LO TOCO)
+        // CANAL PÚBLICO
         const publicChannel = await guild.channels.fetch(PUBLIC_CHANNEL).catch(() => null);
         if (publicChannel) {
           publicChannel.send({
             content: ` ᴡʜɪᴛᴇʟɪsᴛ ᴅᴇɴᴇɢᴀᴅᴀ <@${userId}> — **ʀᴇᴠɪsᴇ ʟᴀs ɴᴏʀᴍᴀs ᴀɴᴛᴇs ᴅᴇ ᴠᴏʟᴠᴇʀ.**`,
             files: ["./assets/wldenied.gif"]
           }).catch(console.error);
+        } else {
+          console.error("No pude encontrar PUBLIC_CHANNEL");
         }
 
         await interaction.editReply({
