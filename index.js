@@ -38,15 +38,13 @@ const ROLE_DENIED = process.env.ROLE_DENIED_ID;
 const PUBLIC_CHANNEL = "1437181608485589012"; // Mensaje bonito + GIF
 const LOG_CHANNEL    = "1064398910891765883"; // Mensaje simple staff
 
-// ================== READY ==================
+// ================== READY (UN SOLO READY) ==================
 client.once("ready", async () => {
   console.log(`Bot iniciado como ${client.user.tag}`);
   console.log("DEBUG GUILD_ID:", GUILD_ID);
   console.log("DEBUG PUBLIC_CHANNEL:", PUBLIC_CHANNEL);
-});
 
-// ================== REGISTRO DE SLASH COMMANDS ==================
-client.once("ready", async () => {
+  // ================== REGISTRO DE SLASH COMMANDS ==================
   const commands = [
     new SlashCommandBuilder()
       .setName("wlpass")
@@ -193,4 +191,3 @@ client.login(TOKEN)
   .catch(err => {
     console.error("❌ Error en client.login:", err);
   });
-
